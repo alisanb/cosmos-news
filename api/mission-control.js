@@ -251,7 +251,7 @@ async function getLaunchStats() {
 }
 
 async function getNews() {
-  const data = await safeFetchJson('https://api.spaceflightnewsapi.net/v4/articles/?limit=12&ordering=-published_at');
+  const data = await safeFetchJson('https://api.spaceflightnewsapi.net/v4/articles/?limit=25&ordering=-published_at');
   if (!data || !Array.isArray(data.results)) return null;
   return data.results.map((a) => ({
     title: a.title,
