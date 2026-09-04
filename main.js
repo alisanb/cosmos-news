@@ -219,21 +219,20 @@
     poll();
     setInterval(poll, 5000);
   })();
-
-  /* ===================================================
-     4. GENERAL & COMMERCIAL NEWS (PAGINATED, MAX 10)
+/* ===================================================
+     4. GENERAL NEWS (PAGINATED, 10 PAGES MAX)
      =================================================== */
   var PAGE_SIZE = 12;
   var MAX_PAGES = 10;
   var currentGenPage = 1;
-  var currentBizPage = 1;
+  var totalGenPages = 10;
 
   function renderArticles(containerId, articles) {
     var container = document.getElementById(containerId);
     if (!container) return;
 
     if (!articles || !articles.length) {
-      container.innerHTML = '<p class="excerpt">No dispatches logged for this cycle.</p>';
+      container.innerHTML = '<p class="excerpt">No articles available on this page.</p>';
       return;
     }
 
@@ -264,76 +263,89 @@
       .join('');
   }
 
-  function renderPaginationNumbers(containerId, currentPage, totalPages, clickHandlerName) {
-    var container = document.getElementById(containerId);
+  function renderPaginationNumbers(currentPage, totalPages) {
+    var container = document.getElementById('gen-page-numbers');
     if (!container) return;
-    var pagesToShow = Math.min(MAX_PAGES, totalPages || 1);
+
+    var count = Math.min(MAX_PAGES, totalPages || 10);
     var html = '';
-    for (var i = 1; i <= pagesToShow; i++) {
-      var isActive = i === currentPage ? ' active' : '';
-      html +=
-        '<button class="page-btn' +
-        isActive +
-        '" type="button" onclick="window.' +
-        clickHandlerName +
-        '(' +
-        i +
-        ')">' +
-        i +
-        '</button>';
+    for (var i = 1; i <= count; i++) {
+      var activeClass = (i === currentPage) ? ' active' : '';
+      html += '<button class="page-btn' + activeClass + '" type="button" data-page="' + i + '">' + i + '</button>';
     }
     container.innerHTML = html;
+
+    // Attach click listeners to the dynamically created number buttons
+    var buttons = container.querySelectorAll('button[data-page]');
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var pageNum = Number(this.getAttribute('data-page'));
+        loadNewsPage(pageNum);
+      });
+    });
   }
 
-  function fetchNewsPage(type, page, containerId, numContainerId, prevBtnId, nextBtnId, clickHandlerName) {
-    var container = document.getElementById(containerId);
-    if (!container) return;
-    container.style.opacity = '0.35';
+  function loadNewsPage(page) {
+    if (page < 1 || page > MAX_PAGES) return;
+    currentGenPage = page;
+
+    var container = document.getElementById('mc-news-grid');
+    if (container) container.style.opacity = '0.3';
 
     var offset = (page - 1) * PAGE_SIZE;
 
-    fetch('/api/mission-control?type=' + encodeURIComponent(type) + '&limit=' + PAGE_SIZE + '&offset=' + offset)
-      .then(function (r) {
-        return r.json();
+    fetch('/api/mission-control?type=news&limit=' + PAGE_SIZE + '&offset=' + offset)
+      .then(function (res) {
+        if (!res.ok) throw new Error('Network error');
+        return res.json();
       })
       .then(function (data) {
-        var results = data && (data.results || data.news || []);
-        renderArticles(containerId, results);
+        var articles = data.results || [];
+        renderArticles('mc-news-grid', articles);
 
-        var totalCount = data && data.count ? data.count : results.length;
-        var calculatedPages = Math.ceil(totalCount / PAGE_SIZE) || 1;
-        var effectiveTotal = Math.min(MAX_PAGES, calculatedPages);
+        // Calculate pages (capped at 10)
+        var totalCount = data.count || (PAGE_SIZE * MAX_PAGES);
+        totalGenPages = Math.min(MAX_PAGES, Math.ceil(totalCount / PAGE_SIZE) || 10);
 
-        renderPaginationNumbers(numContainerId, page, effectiveTotal, clickHandlerName);
+        renderPaginationNumbers(currentGenPage, totalGenPages);
 
-        var prevBtn = document.getElementById(prevBtnId);
-        var nextBtn = document.getElementById(nextBtnId);
-        if (prevBtn) prevBtn.disabled = page <= 1;
-        if (nextBtn) nextBtn.disabled = page >= effectiveTotal;
+        setText('gen-page-indicator', 'Page ' + currentGenPage + ' of ' + totalGenPages);
+
+        var prevBtn = document.getElementById('gen-prev-btn');
+        var nextBtn = document.getElementById('gen-next-btn');
+        if (prevBtn) prevBtn.disabled = (currentGenPage <= 1);
+        if (nextBtn) nextBtn.disabled = (currentGenPage >= totalGenPages);
       })
       .catch(function () {
-        container.innerHTML = '<p class="excerpt">Mission telemetry offline &mdash; could not sync feed.</p>';
+        if (container) container.innerHTML = '<p class="excerpt">Failed to load news page. Please try again.</p>';
       })
       .finally(function () {
-        container.style.opacity = '1';
+        if (container) container.style.opacity = '1';
       });
   }
 
-  // Exposed to window so dynamically injected pagination buttons can invoke them
-  window.goToGeneralPage = function (page) {
-    if (page < 1 || page > MAX_PAGES) return;
-    currentGenPage = page;
-    fetchNewsPage('general', currentGenPage, 'mc-news-grid', 'gen-page-numbers', 'gen-prev-btn', 'gen-next-btn', 'goToGeneralPage');
-  };
+  // Bind Prev and Next buttons once
+  var prevButton = document.getElementById('gen-prev-btn');
+  var nextButton = document.getElementById('gen-next-btn');
 
-  window.goToBizPage = function (page) {
-    if (page < 1 || page > MAX_PAGES) return;
-    currentBizPage = page;
-    fetchNewsPage('business', currentBizPage, 'biz-news-grid', 'biz-page-numbers', 'biz-prev-btn', 'biz-next-btn', 'goToBizPage');
-  };
+  if (prevButton) {
+    prevButton.addEventListener('click', function () {
+      if (currentGenPage > 1) {
+        loadNewsPage(currentGenPage - 1);
+      }
+    });
+  }
+
+  if (nextButton) {
+    nextButton.addEventListener('click', function () {
+      if (currentGenPage < totalGenPages) {
+        loadNewsPage(currentGenPage + 1);
+      }
+    });
+  }
 
   /* ===================================================
-     5. INITIAL MISSION CONTROL HYDRATION
+     5. INITIAL MISSION CONTROL TELEMETRY
      =================================================== */
   fetch('/api/mission-control')
     .then(function (r) {
@@ -465,14 +477,12 @@
       }
       renderLiveCharts(d);
 
-      // Hydrate news feeds on initial load
-      window.goToGeneralPage(1);
-      if (document.getElementById('biz-news-grid')) {
-        window.goToBizPage(1);
-      }
+      // Trigger initial page load for news
+      loadNewsPage(1);
     })
     .catch(function () {
       setText('mc-updated', 'Live sync unavailable right now — deploy with API routes to see real values.');
+      loadNewsPage(1);
     });
 
   /* ===================================================
