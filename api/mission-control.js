@@ -249,51 +249,65 @@ async function getLaunchStats() {
     byYear,
   };
 }
+// In api/mission-control.js
 
-async function getNews() {
-  const data = await safeFetchJson('https://api.spaceflightnewsapi.net/v4/articles/?limit=25&ordering=-published_at');
-  if (!data || !Array.isArray(data.results)) return null;
-  return data.results.map((a) => ({
-    title: a.title,
-    url: a.url,
-    site: a.news_site || 'Space news',
-    publishedAt: a.published_at || null,
-    imageUrl: a.image_url || null,
-    summary: a.summary ? String(a.summary).slice(0, 180) : '',
-  }));
+async function getNews(limit = 25, offset = 0) {
+  try {
+    const safeLimit = Math.min(Math.max(Number(limit) || 25, 1), 50);
+    const safeOffset = Math.max(Number(offset) || 0, 0);
+
+    const url = `https://api.spaceflightnewsapi.net/v4/articles/?limit=${safeLimit}&offset=${safeOffset}&ordering=-published_at`;
+
+    const data = await safeFetchJson(url, 9000);
+    if (!data || !Array.isArray(data.results)) {
+      return { count: 0, results: [] };
+    }
+
+    return {
+      count: data.count || 250,
+      results: data.results.map((a) => ({
+        title: a.title || 'Untitled Dispatch',
+        url: a.url || '#',
+        site: a.news_site || 'Space News',
+        publishedAt: a.published_at || null,
+        imageUrl: a.image_url || null,
+        summary: a.summary ? String(a.summary).slice(0, 180) : '',
+      })),
+    };
+  } catch (err) {
+    return { count: 0, results: [] };
+  }
 }
 
 module.exports = async (req, res) => {
   res.setHeader('content-type', 'application/json');
+  const query = req.query || {};
 
-  const [satellites, neo, apod, apodRange, launches, launchStats, news, spaceWeather, epic] = await Promise.all([
-    getSatellites(),
-    getNeo(),
-    getApod(),
-    getApodRange(),
-    getLaunches(),
-    getLaunchStats(),
-    getNews(),
-    getSpaceWeather(),
-    getEpic(),
-  ]);
+  // If offset or type is provided, this is a pagination request -> NO CACHE
+  if (query.offset !== undefined || query.type === 'news') {
+    const limit = Number(query.limit) || 25;
+    const offset = Number(query.offset) || 0;
 
-  // Cache this response at Vercel's edge for 30 minutes, and allow serving
-  // a slightly-stale copy for up to an hour while a fresh one is fetched
-  // in the background. This is what makes the section "auto-update"
-  // periodically without every visitor triggering seven API calls.
-  res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
+    const newsData = await getNews(limit, offset);
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    return res.status(200).json(newsData);
+  }
 
-  res.status(200).json({
-    generatedAt: new Date().toISOString(),
-    satellites,
-    neo,
-    apod,
-    apodRange,
-    launches,
-    launchStats,
-    news,
-    spaceWeather,
-    epic,
-  });
+  // Initial Load
+  try {
+    const generalNews = await getNews(25, 0);
+
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
+    return res.status(200).json({
+      generatedAt: new Date().toISOString(),
+      news: generalNews.results || [],
+      count: generalNews.count || 250
+    });
+  } catch (err) {
+    return res.status(200).json({
+      generatedAt: new Date().toISOString(),
+      news: [],
+      count: 0
+    });
+  }
 };
