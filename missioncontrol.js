@@ -156,78 +156,92 @@ async function getLaunches() {
   };
 }
 // api/mission-control.js
+// In api/mission-control.js
 
 async function getNews(limit = 12, offset = 0, isBusiness = false) {
-  // If business, query SpaceNews articles directly or filter specifically by commercial search terms
-  const baseUrl = 'https://api.spaceflightnewsapi.net/v4/articles/';
-  const params = new URLSearchParams({
-    limit: String(limit),
-    offset: String(offset),
-    ordering: '-published_at'
-  });
+  try {
+    const baseUrl = 'https://api.spaceflightnewsapi.net/v4/articles/';
+    let url = `${baseUrl}?limit=${limit}&offset=${offset}&ordering=-published_at`;
 
-  if (isBusiness) {
-    // Specifically filter for SpaceNews content dealing with the commercial market
-    params.set('news_site', 'SpaceNews');
+    // Business filter: search for commercial space keywords using SNAPI's official search parameter
+    if (isBusiness) {
+      url += '&search=commercial';
+    }
+
+    const data = await safeFetchJson(url, 8000);
+    if (!data || !Array.isArray(data.results)) {
+      return { count: 0, results: [] };
+    }
+
+    return {
+      count: data.count || data.results.length,
+      results: data.results.map((a) => ({
+        title: a.title || 'Untitled Dispatch',
+        url: a.url || '#',
+        site: a.news_site || (isBusiness ? 'Market Watch' : 'Space News'),
+        publishedAt: a.published_at || null,
+        imageUrl: a.image_url || null,
+        summary: a.summary ? String(a.summary).slice(0, 180) : '',
+      })),
+    };
+  } catch (err) {
+    // Return empty results rather than throwing an exception to protect the rest of the site
+    return { count: 0, results: [] };
   }
-
-  const data = await safeFetchJson(`${baseUrl}?${params.toString()}`);
-  if (!data || !Array.isArray(data.results)) return { count: 0, results: [] };
-
-  return {
-    count: data.count,
-    results: data.results.map((a) => ({
-      title: a.title,
-      url: a.url,
-      site: a.news_site || 'SpaceNews',
-      publishedAt: a.published_at || null,
-      imageUrl: a.image_url || null,
-      summary: a.summary ? String(a.summary).slice(0, 180) : '',
-    })),
-  };
 }
 
 module.exports = async (req, res) => {
   res.setHeader('content-type', 'application/json');
+
   const query = req.query || {};
 
-  // Handle paginated queries from the client
+  // 1. Paginated slice requested by pagination buttons
   if (query.type) {
     const limit = Math.min(Number(query.limit) || 12, 30);
-    const offset = Number(query.offset) || 0;
+    const offset = Math.max(Number(query.offset) || 0, 0);
     const isBusiness = query.type === 'business';
 
     const newsData = await getNews(limit, offset, isBusiness);
-    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=1200');
+    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
     return res.status(200).json(newsData);
   }
 
-  // Regular mission-control payload on first visit
-  const [satellites, neo, apod, apodRange, launches, launchStats, generalNews, bizNews, spaceWeather, epic] = await Promise.all([
-    getSatellites(),
-    getNeo(),
-    getApod(),
-    getApodRange(),
-    getLaunches(),
-    getLaunchStats(),
-    getNews(12, 0, false), // General headlines from all outlets
-    getNews(12, 0, true),  // Dedicated SpaceNews commercial feed
-    getSpaceWeather(),
-    getEpic(),
-  ]);
+  // 2. Initial Page Load - Fetch all feeds safely
+  try {
+    const [satellites, neo, apod, apodRange, launches, launchStats, generalNews, bizNews, spaceWeather, epic] =
+      await Promise.all([
+        getSatellites().catch(() => null),
+        getNeo().catch(() => null),
+        getApod().catch(() => null),
+        getApodRange().catch(() => null),
+        getLaunches().catch(() => null),
+        getLaunchStats().catch(() => null),
+        getNews(12, 0, false), // General feed
+        getNews(12, 0, true),  // Business / Commercial feed
+        getSpaceWeather().catch(() => null),
+        getEpic().catch(() => null),
+      ]);
 
-  res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
-  res.status(200).json({
-    generatedAt: new Date().toISOString(),
-    satellites,
-    neo,
-    apod,
-    apodRange,
-    launches,
-    launchStats,
-    news: generalNews.results,
-    bizNews: bizNews.results,
-    spaceWeather,
-    epic,
-  });
+    res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
+    return res.status(200).json({
+      generatedAt: new Date().toISOString(),
+      satellites,
+      neo,
+      apod,
+      apodRange,
+      launches,
+      launchStats,
+      news: generalNews.results || [],
+      bizNews: bizNews.results || [],
+      spaceWeather,
+      epic,
+    });
+  } catch (fatal) {
+    // Ultimate fallback: even if something breaks upstream, return 200 with fallback data
+    return res.status(200).json({
+      generatedAt: new Date().toISOString(),
+      news: [],
+      bizNews: [],
+    });
+  }
 };
