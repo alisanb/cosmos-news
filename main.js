@@ -1044,3 +1044,136 @@
     });
   });
 })();
+
+
+/* ===================================================
+     4. GENERAL & COMMERCIAL NEWS (PAGINATED, MAX 10)
+     =================================================== */
+  var PAGE_SIZE = 12;
+  var MAX_PAGES = 10;
+  var currentGenPage = 1;
+  var currentBizPage = 1;
+
+  // Expose to window so inline references or devtools can access them
+  window.currentGenPage = currentGenPage;
+  window.currentBizPage = currentBizPage;
+
+  function renderArticles(containerId, articles) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+
+    if (!articles || !articles.length) {
+      container.innerHTML = '<p class="excerpt">No dispatches logged for this cycle.</p>';
+      return;
+    }
+
+    container.innerHTML = articles
+      .map(function (item) {
+        return (
+          '<a class="news-tile" href="' +
+          esc(item.url) +
+          '" target="_blank" rel="noopener">' +
+          '<div class="news-thumb">' +
+          (item.imageUrl
+            ? '<img src="' + esc(item.imageUrl) + '" alt="" loading="lazy">'
+            : '') +
+          '</div>' +
+          '<div class="body">' +
+          '<span class="news-title">' +
+          esc(item.title) +
+          '</span>' +
+          (item.summary
+            ? '<p class="news-sum">' + esc(item.summary) + '…</p>'
+            : '') +
+          '<span class="news-meta">' +
+          esc(item.site) +
+          (item.publishedAt ? ' · ' + fmtWhen(item.publishedAt) : '') +
+          '</span></div></a>'
+        );
+      })
+      .join('');
+  }
+
+  function renderPaginationNumbers(containerId, currentPage, totalPages, clickHandlerName) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    var pagesToShow = Math.min(MAX_PAGES, totalPages || 1);
+    var html = '';
+    for (var i = 1; i <= pagesToShow; i++) {
+      var isActive = i === currentPage ? ' active' : '';
+      html +=
+        '<button class="page-btn' +
+        isActive +
+        '" type="button" onclick="window.' +
+        clickHandlerName +
+        '(' +
+        i +
+        ')">' +
+        i +
+        '</button>';
+    }
+    container.innerHTML = html;
+  }
+
+  function fetchNewsPage(type, page, containerId, numContainerId, prevBtnId, nextBtnId, clickHandlerName) {
+    var container = document.getElementById(containerId);
+    if (!container) return;
+    container.style.opacity = '0.35';
+
+    var offset = (page - 1) * PAGE_SIZE;
+
+    fetch('/api/mission-control?type=' + encodeURIComponent(type) + '&limit=' + PAGE_SIZE + '&offset=' + offset)
+      .then(function (r) {
+        return r.json();
+      })
+      .then(function (data) {
+        var results = data && (data.results || data.news || []);
+        renderArticles(containerId, results);
+
+        var totalCount = data && data.count ? data.count : results.length;
+        var calculatedPages = Math.ceil(totalCount / PAGE_SIZE) || 1;
+        var effectiveTotal = Math.min(MAX_PAGES, calculatedPages);
+
+        renderPaginationNumbers(numContainerId, page, effectiveTotal, clickHandlerName);
+
+        // Update page text indicators
+        var indicatorId = type === 'business' ? 'biz-page-indicator' : 'general-page-indicator';
+        setText(indicatorId, 'Page ' + page);
+
+        var prevBtn = document.getElementById(prevBtnId);
+        var nextBtn = document.getElementById(nextBtnId);
+        if (prevBtn) prevBtn.disabled = page <= 1;
+        if (nextBtn) nextBtn.disabled = page >= effectiveTotal;
+      })
+      .catch(function () {
+        container.innerHTML = '<p class="excerpt">Mission telemetry offline &mdash; could not sync feed.</p>';
+      })
+      .finally(function () {
+        container.style.opacity = '1';
+      });
+  }
+
+  window.goToGeneralPage = function (page) {
+    if (page < 1 || page > MAX_PAGES) return;
+    currentGenPage = page;
+    window.currentGenPage = page;
+    fetchNewsPage('general', currentGenPage, 'mc-news-grid', 'gen-page-numbers', 'gen-prev-btn', 'gen-next-btn', 'goToGeneralPage');
+  };
+
+  window.goToBizPage = function (page) {
+    if (page < 1 || page > MAX_PAGES) return;
+    currentBizPage = page;
+    window.currentBizPage = page;
+    fetchNewsPage('business', currentBizPage, 'biz-news-grid', 'biz-page-numbers', 'biz-prev-btn', 'biz-next-btn', 'goToBizPage');
+  };
+
+  // Bind event listeners directly so buttons function independently of inline HTML attributes
+  var genPrev = document.getElementById('gen-prev-btn');
+  var genNext = document.getElementById('gen-next-btn');
+  if (genPrev) genPrev.addEventListener('click', function () { window.goToGeneralPage(currentGenPage - 1); });
+  if (genNext) genNext.addEventListener('click', function () { window.goToGeneralPage(currentGenPage + 1); });
+
+  var bizPrev = document.getElementById('biz-prev-btn');
+  var bizNext = document.getElementById('biz-next-btn');
+  if (bizPrev) bizPrev.addEventListener('click', function () { window.goToBizPage(currentBizPage - 1); });
+  if (bizNext) bizNext.addEventListener('click', function () { window.goToBizPage(currentBizPage + 1); });
