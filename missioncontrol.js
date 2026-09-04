@@ -155,44 +155,78 @@ async function getLaunches() {
     })),
   };
 }
+// api/mission-control.js
 
-async function getNews() {
-  const data = await safeFetchJson('https://api.spaceflightnewsapi.net/v4/articles/?limit=6&ordering=-published_at');
-  if (!data || !Array.isArray(data.results)) return null;
-  return data.results.map((a) => ({
-    title: a.title,
-    url: a.url,
-    site: a.news_site || 'Space news',
-    publishedAt: a.published_at || null,
-  }));
+async function getNews(limit = 12, offset = 0, isBusiness = false) {
+  // If business, query SpaceNews articles directly or filter specifically by commercial search terms
+  const baseUrl = 'https://api.spaceflightnewsapi.net/v4/articles/';
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset),
+    ordering: '-published_at'
+  });
+
+  if (isBusiness) {
+    // Specifically filter for SpaceNews content dealing with the commercial market
+    params.set('news_site', 'SpaceNews');
+  }
+
+  const data = await safeFetchJson(`${baseUrl}?${params.toString()}`);
+  if (!data || !Array.isArray(data.results)) return { count: 0, results: [] };
+
+  return {
+    count: data.count,
+    results: data.results.map((a) => ({
+      title: a.title,
+      url: a.url,
+      site: a.news_site || 'SpaceNews',
+      publishedAt: a.published_at || null,
+      imageUrl: a.image_url || null,
+      summary: a.summary ? String(a.summary).slice(0, 180) : '',
+    })),
+  };
 }
 
 module.exports = async (req, res) => {
   res.setHeader('content-type', 'application/json');
+  const query = req.query || {};
 
-  const [satellites, neo, apod, launches, news, spaceWeather, epic] = await Promise.all([
+  // Handle paginated queries from the client
+  if (query.type) {
+    const limit = Math.min(Number(query.limit) || 12, 30);
+    const offset = Number(query.offset) || 0;
+    const isBusiness = query.type === 'business';
+
+    const newsData = await getNews(limit, offset, isBusiness);
+    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=1200');
+    return res.status(200).json(newsData);
+  }
+
+  // Regular mission-control payload on first visit
+  const [satellites, neo, apod, apodRange, launches, launchStats, generalNews, bizNews, spaceWeather, epic] = await Promise.all([
     getSatellites(),
     getNeo(),
     getApod(),
+    getApodRange(),
     getLaunches(),
-    getNews(),
+    getLaunchStats(),
+    getNews(12, 0, false), // General headlines from all outlets
+    getNews(12, 0, true),  // Dedicated SpaceNews commercial feed
     getSpaceWeather(),
     getEpic(),
   ]);
 
-  // Cache this response at Vercel's edge for 30 minutes, and allow serving
-  // a slightly-stale copy for up to an hour while a fresh one is fetched
-  // in the background. This is what makes the section "auto-update"
-  // periodically without every visitor triggering seven API calls.
   res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
-
   res.status(200).json({
     generatedAt: new Date().toISOString(),
     satellites,
     neo,
     apod,
+    apodRange,
     launches,
-    news,
+    launchStats,
+    news: generalNews.results,
+    bizNews: bizNews.results,
     spaceWeather,
     epic,
   });
