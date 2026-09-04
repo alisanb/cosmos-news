@@ -219,8 +219,7 @@
     poll();
     setInterval(poll, 5000);
   })();
-
-/* ===================================================
+//* ===================================================
      4. GENERAL NEWS (15 PER PAGE, SLIDING WINDOW PAGINATION)
      =================================================== */
   var PAGE_SIZE = 15;
@@ -271,17 +270,14 @@
       return arr;
     }
 
-    // Near start: 1, 2, 3, 4, ..., total
     if (current <= 4) {
       return [1, 2, 3, 4, 5, '...', total];
     }
 
-    // Near end: 1, ..., total-4, total-3, total-2, total-1, total
     if (current >= total - 3) {
       return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
     }
 
-    // In middle: 1, ..., current-1, current, current+1, ..., total
     return [1, '...', current - 1, current, current + 1, '...', total];
   }
 
@@ -321,26 +317,9 @@
     });
   }
 
-  // Helper to sync page number into address bar
-  function syncUrlPage(page) {
-    var url = new URL(window.location);
-    if (page > 1) {
-      url.searchParams.set('page', page);
-    } else {
-      url.searchParams.delete('page'); // Keeps page 1 clean
-    }
-    // Update URL without triggering a page reload
-    window.history.pushState({ newsPage: page }, '', url.toString());
-  }
-
-  function loadNewsPage(page, skipHistory) {
-    if (page < 1 || (totalGenPages && page > totalGenPages)) return;
+  function loadNewsPage(page) {
+    if (page < 1 || page > totalGenPages) return;
     currentGenPage = page;
-
-    // Sync URL unless triggered by the browser's Back/Forward button
-    if (!skipHistory) {
-      syncUrlPage(page);
-    }
 
     var container = document.getElementById('mc-news-grid');
     if (container) container.style.opacity = '0.3';
@@ -367,50 +346,56 @@
         totalGenPages = Math.ceil(totalCount / PAGE_SIZE) || 1;
 
         renderPaginationNumbers(currentGenPage, totalGenPages);
-        setText('gen-page-indicator', 'Page ' + currentGenPage + ' of ' + totalGenPages);
+        setText(
+          'gen-page-indicator',
+          'Page ' + currentGenPage + ' of ' + totalGenPages
+        );
 
         var prevBtn = document.getElementById('gen-prev-btn');
         var nextBtn = document.getElementById('gen-next-btn');
         if (prevBtn) prevBtn.disabled = currentGenPage <= 1;
         if (nextBtn) nextBtn.disabled = currentGenPage >= totalGenPages;
 
-        // Auto-scroll to news card only if navigating forward/backward via click
-        if (!skipHistory && page > 1) {
-          var card = document.querySelector('.news-card');
-          if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        var card = document.querySelector('.news-card');
+        if (card) {
+          card.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       })
       .catch(function () {
-        if (container) {
-          container.innerHTML = '<p class="excerpt">Failed to load news page. Please try again.</p>';
-        }
+        if (container)
+          container.innerHTML =
+            '<p class="excerpt">Failed to load news page. Please try again.</p>';
       })
       .finally(function () {
         if (container) container.style.opacity = '1';
       });
   }
-  
-/* ===================================================
-     5. INITIAL MISSION CONTROL TELEMETRY
-     =================================================== */
-  // 1. Detect if the user landed on a specific page via URL (?page=X)
-  var initialParams = new URLSearchParams(window.location.search);
-  var initialPage = parseInt(initialParams.get('page'), 10);
-  if (isNaN(initialPage) || initialPage < 1) {
-    initialPage = 1;
+
+  var prevButton = document.getElementById('gen-prev-btn');
+  var nextButton = document.getElementById('gen-next-btn');
+
+  if (prevButton) {
+    prevButton.onclick = function () {
+      if (currentGenPage > 1) {
+        loadNewsPage(currentGenPage - 1);
+      }
+    };
   }
 
-  // Load target page on initial boot (skips duplicate pushState on landing)
-  loadNewsPage(initialPage, true);
+  if (nextButton) {
+    nextButton.onclick = function () {
+      if (currentGenPage < totalGenPages) {
+        loadNewsPage(currentGenPage + 1);
+      }
+    };
+  }
 
-  // 2. Handle native browser Back / Forward buttons
-  window.addEventListener('popstate', function () {
-    var params = new URLSearchParams(window.location.search);
-    var targetPage = parseInt(params.get('page'), 10) || 1;
-    loadNewsPage(targetPage, true);
-  });
+  /* ===================================================
+     5. INITIAL MISSION CONTROL TELEMETRY
+     =================================================== */
+  // Load page 1 cleanly on startup
+  loadNewsPage(1);
 
-  // 3. Fetch Mission Control Telemetry
   fetch('/api/mission-control')
     .then(function (r) {
       return r.json();
