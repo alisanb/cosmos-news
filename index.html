@@ -548,46 +548,91 @@ details.data-table th:first-child,details.data-table td:first-child{text-align:l
     font-size: 10.5px;
     padding: 3px 6px;
   }
-
+/* ===================================================
+   SLEEK COSMIC PAGINATION BAR
+   =================================================== */
 .pagination-bar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin-top: 20px;
-  flex-wrap: wrap;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin-top: 24px !important;
+  flex-wrap: nowrap !important;
+  width: 100% !important;
 }
+
 .page-numbers {
-  display: inline-flex;
-  gap: 6px;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
 }
+
+/* Base button reset & dark terminal style */
 .page-btn {
-  min-width: 36px;
-  height: 36px;
-  padding: 0 8px;
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--color-divider);
-  background: var(--color-surface);
-  color: var(--color-text);
-  cursor: pointer;
-  transition: all 0.15s ease;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  padding: 0 8px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--color-text) !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-divider) !important;
+  border-radius: var(--radius-md) !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease !important;
+  outline: none !important;
 }
+
 .page-btn:hover:not(:disabled) {
-  border-color: var(--color-accent);
-  color: var(--color-accent-300);
+  border-color: var(--color-accent) !important;
+  color: var(--color-accent-300) !important;
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface)) !important;
 }
+
+/* Active page highlight */
 .page-btn.active {
-  background: var(--color-accent);
-  color: #07080d;
-  font-weight: 700;
-  border-color: var(--color-accent);
+  background: var(--color-accent) !important;
+  color: #07080d !important;
+  font-weight: 700 !important;
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 12px -2px var(--color-accent) !important;
 }
+
 .page-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+}
+
+/* Prev / Next buttons in pagination bar */
+.pagination-bar .btn {
+  height: 34px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+  border-radius: var(--radius-md) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Mobile responsive scaling */
+@media (max-width: 600px) {
+  .pagination-bar {
+    gap: 4px !important;
+  }
+  .page-btn {
+    min-width: 28px !important;
+    height: 28px !important;
+    font-size: 11px !important;
+    padding: 0 4px !important;
+  }
+  .pagination-bar .btn {
+    height: 28px !important;
+    padding: 0 8px !important;
+    font-size: 11px !important;
+  }
 }
 
 }
