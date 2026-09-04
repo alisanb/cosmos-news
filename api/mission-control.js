@@ -249,65 +249,73 @@ async function getLaunchStats() {
     byYear,
   };
 }
-// In api/mission-control.js
 
-async function getNews(limit = 25, offset = 0) {
-  try {
-    const safeLimit = Math.min(Math.max(Number(limit) || 25, 1), 50);
-    const safeOffset = Math.max(Number(offset) || 0, 0);
 
-    const url = `https://api.spaceflightnewsapi.net/v4/articles/?limit=${safeLimit}&offset=${safeOffset}&ordering=-published_at`;
-
-    const data = await safeFetchJson(url, 9000);
-    if (!data || !Array.isArray(data.results)) {
-      return { count: 0, results: [] };
-    }
-
-    return {
-      count: data.count || 250,
-      results: data.results.map((a) => ({
-        title: a.title || 'Untitled Dispatch',
-        url: a.url || '#',
-        site: a.news_site || 'Space News',
-        publishedAt: a.published_at || null,
-        imageUrl: a.image_url || null,
-        summary: a.summary ? String(a.summary).slice(0, 180) : '',
-      })),
-    };
-  } catch (err) {
-    return { count: 0, results: [] };
+async function getNews(limit = 12, offset = 0, search = '') {
+  let url = `https://api.spaceflightnewsapi.net/v4/articles/?limit=${limit}&offset=${offset}&ordering=-published_at`;
+  if (search) {
+    url += `&search=${encodeURIComponent(search)}`;
   }
+  const data = await safeFetchJson(url);
+  if (!data || !Array.isArray(data.results)) return { count: 0, results: [] };
+
+  return {
+    count: data.count,
+    results: data.results.map((a) => ({
+      title: a.title,
+      url: a.url,
+      site: a.news_site || 'Space news',
+      publishedAt: a.published_at || null,
+      imageUrl: a.image_url || null,
+      summary: a.summary ? String(a.summary).slice(0, 180) : '',
+    })),
+  };
 }
 
 module.exports = async (req, res) => {
   res.setHeader('content-type', 'application/json');
+
   const query = req.query || {};
+  const newsType = query.type || null;
 
-  // If offset or type is provided, this is a pagination request -> NO CACHE
-  if (query.offset !== undefined || query.type === 'news') {
-    const limit = Number(query.limit) || 25;
+  // 1. If the frontend is requesting a paginated news slice:
+  if (newsType) {
+    const limit = Math.min(Number(query.limit) || 12, 30);
     const offset = Number(query.offset) || 0;
+    // Searches specifically for market, contracts, and commercial space keywords
+    const search = newsType === 'business' ? 'commercial OR contract OR funding OR acquisition' : '';
 
-    const newsData = await getNews(limit, offset);
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+    const newsData = await getNews(limit, offset, search);
+    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate=1200');
     return res.status(200).json(newsData);
   }
 
-  // Initial Load
-  try {
-    const generalNews = await getNews(25, 0);
+  // 2. Default behavior: full mission control initial load
+  const [satellites, neo, apod, apodRange, launches, launchStats, generalNews, bizNews, spaceWeather, epic] = await Promise.all([
+    getSatellites(),
+    getNeo(),
+    getApod(),
+    getApodRange(),
+    getLaunches(),
+    getLaunchStats(),
+    getNews(12, 0, ''),
+    getNews(12, 0, 'commercial OR contract OR funding OR acquisition'),
+    getSpaceWeather(),
+    getEpic(),
+  ]);
 
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=120');
-    return res.status(200).json({
-      generatedAt: new Date().toISOString(),
-      news: generalNews.results || [],
-      count: generalNews.count || 250
-    });
-  } catch (err) {
-    return res.status(200).json({
-      generatedAt: new Date().toISOString(),
-      news: [],
-      count: 0
-    });
-  }
+  res.setHeader('Cache-Control', 's-maxage=1800, stale-while-revalidate=3600');
+  res.status(200).json({
+    generatedAt: new Date().toISOString(),
+    satellites,
+    neo,
+    apod,
+    apodRange,
+    launches,
+    launchStats,
+    news: generalNews.results,
+    bizNews: bizNews.results,
+    spaceWeather,
+    epic,
+  });
 };
