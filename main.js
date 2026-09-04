@@ -219,9 +219,10 @@
     poll();
     setInterval(poll, 5000);
   })();
-//* ===================================================
-     4. GENERAL NEWS (15 PER PAGE, SLIDING WINDOW PAGINATION)
-     =================================================== */
+
+  /* 4 General News */
+
+  
   var PAGE_SIZE = 15;
   var currentGenPage = 1;
   var totalGenPages = 10;
