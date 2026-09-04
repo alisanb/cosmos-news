@@ -220,11 +220,10 @@
     setInterval(poll, 5000);
   })();
 
- /* ===================================================
-     4. GENERAL NEWS (PAGINATED, 10 PAGES MAX)
+/* ===================================================
+     4. GENERAL NEWS (15 PER PAGE, SLIDING WINDOW PAGINATION)
      =================================================== */
-  var PAGE_SIZE = 25; // Matching your 25 articles
-  var MAX_PAGES = 10;
+  var PAGE_SIZE = 15;
   var currentGenPage = 1;
   var totalGenPages = 10;
 
@@ -264,19 +263,53 @@
       .join('');
   }
 
+  // Generates sliding window pagination: [1, 2, 3, '...', 8, 9, 10]
+  function buildPaginationModel(current, total) {
+    if (total <= 7) {
+      var arr = [];
+      for (var i = 1; i <= total; i++) arr.push(i);
+      return arr;
+    }
+
+    // Near start: 1, 2, 3, 4, ..., total
+    if (current <= 4) {
+      return [1, 2, 3, 4, 5, '...', total];
+    }
+
+    // Near end: 1, ..., total-4, total-3, total-2, total-1, total
+    if (current >= total - 3) {
+      return [1, '...', total - 4, total - 3, total - 2, total - 1, total];
+    }
+
+    // In middle: 1, ..., current-1, current, current+1, ..., total
+    return [1, '...', current - 1, current, current + 1, '...', total];
+  }
+
   function renderPaginationNumbers(currentPage, totalPages) {
     var container = document.getElementById('gen-page-numbers');
     if (!container) return;
 
-    var count = Math.min(MAX_PAGES, totalPages || 10);
+    var pages = buildPaginationModel(currentPage, totalPages);
     var html = '';
-    for (var i = 1; i <= count; i++) {
-      var activeClass = (i === currentPage) ? ' active' : '';
-      html += '<button class="page-btn' + activeClass + '" type="button" data-page="' + i + '">' + i + '</button>';
-    }
+
+    pages.forEach(function (item) {
+      if (item === '...') {
+        html += '<span class="page-ellipsis">&hellip;</span>';
+      } else {
+        var activeClass = item === currentPage ? ' active' : '';
+        html +=
+          '<button class="page-btn' +
+          activeClass +
+          '" type="button" data-page="' +
+          item +
+          '">' +
+          item +
+          '</button>';
+      }
+    });
+
     container.innerHTML = html;
 
-    // Attach listeners directly to each number button
     var buttons = container.querySelectorAll('button[data-page]');
     buttons.forEach(function (btn) {
       btn.addEventListener('click', function () {
@@ -289,16 +322,20 @@
   }
 
   function loadNewsPage(page) {
-    if (page < 1 || page > MAX_PAGES) return;
+    if (page < 1 || page > totalGenPages) return;
     currentGenPage = page;
 
     var container = document.getElementById('mc-news-grid');
     if (container) container.style.opacity = '0.3';
 
     var offset = (page - 1) * PAGE_SIZE;
-
-    // Notice the &_t cache-buster to completely bypass browser and Vercel edge caching
-    var queryUrl = '/api/mission-control?type=news&limit=' + PAGE_SIZE + '&offset=' + offset + '&_t=' + Date.now();
+    var queryUrl =
+      '/api/mission-control?type=news&limit=' +
+      PAGE_SIZE +
+      '&offset=' +
+      offset +
+      '&_t=' +
+      Date.now();
 
     fetch(queryUrl)
       .then(function (res) {
@@ -309,33 +346,36 @@
         var articles = (data && (data.results || data.news)) || [];
         renderArticles('mc-news-grid', articles);
 
-        var totalCount = (data && data.count) || (PAGE_SIZE * MAX_PAGES);
-        totalGenPages = Math.min(MAX_PAGES, Math.ceil(totalCount / PAGE_SIZE) || 10);
+        var totalCount = (data && data.count) || 250;
+        // Allows up to the full 250 pool (~17 pages)
+        totalGenPages = Math.ceil(totalCount / PAGE_SIZE) || 1;
 
         renderPaginationNumbers(currentGenPage, totalGenPages);
-        setText('gen-page-indicator', 'Page ' + currentGenPage + ' of ' + totalGenPages);
+        setText(
+          'gen-page-indicator',
+          'Page ' + currentGenPage + ' of ' + totalGenPages
+        );
 
         var prevBtn = document.getElementById('gen-prev-btn');
         var nextBtn = document.getElementById('gen-next-btn');
-        if (prevBtn) prevBtn.disabled = (currentGenPage <= 1);
-        if (nextBtn) nextBtn.disabled = (currentGenPage >= totalGenPages);
+        if (prevBtn) prevBtn.disabled = currentGenPage <= 1;
+        if (nextBtn) nextBtn.disabled = currentGenPage >= totalGenPages;
 
-        // Smoothly scroll to the top of the news card so user sees the new articles
         var card = document.querySelector('.news-card');
         if (card) {
           card.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
       })
-      .catch(function (err) {
-        console.error('Failed to load page:', err);
-        if (container) container.innerHTML = '<p class="excerpt">Failed to load news page. Please try again.</p>';
+      .catch(function () {
+        if (container)
+          container.innerHTML =
+            '<p class="excerpt">Failed to load news page. Please try again.</p>';
       })
       .finally(function () {
         if (container) container.style.opacity = '1';
       });
   }
 
-  // Bind Prev and Next buttons once
   var prevButton = document.getElementById('gen-prev-btn');
   var nextButton = document.getElementById('gen-next-btn');
 
