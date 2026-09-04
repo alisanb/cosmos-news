@@ -688,49 +688,39 @@ details.data-table th:first-child,details.data-table td:first-child{text-align:l
 <main class="content">
 
   <section id="live">
-<!-- ================= ALL NEWS (PAGE 1 TO N) ================= -->
-<div class="live-card news-card" style="grid-column:1/-1; margin-bottom:1.5rem">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <div>
-      <span class="src-tag">Global Feed &middot; Live Headlines</span>
-      <h3 style="margin:4px 0 0;">General Space News</h3>
+<!-- ================= 1. GLOBAL SPACE NEWS (LIVE + WORKING 10-PAGE PAGINATION) ================= -->
+    <div class="live-card news-card" style="grid-column:1/-1; margin-bottom:1.5rem">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span class="src-tag">Live Feed &middot; Spaceflight News</span>
+          <h3 style="margin:4px 0 0;">Headlines this week</h3>
+        </div>
+        <span class="mono text-muted" id="gen-page-indicator" style="font-size:12px;">Page 1 of 10</span>
+      </div>
+
+      <div class="news-grid" id="mc-news-grid">
+        <p class="excerpt">Loading headlines&hellip;</p>
+      </div>
+
+      <!-- Pagination Bar: NO inline onclick handlers to prevent conflicts -->
+      <div class="pagination-bar" id="gen-pagination">
+        <button class="page-btn" id="gen-prev-btn" type="button">&larr; Prev</button>
+        <div class="page-numbers" id="gen-page-numbers"></div>
+        <button class="page-btn" id="gen-next-btn" type="button">Next &rarr;</button>
+      </div>
     </div>
-    <span class="mono text-muted" id="general-page-indicator" style="font-size:12px;">Page 1</span>
-  </div>
 
-  <div class="news-grid" id="mc-news-grid">
-    <p class="excerpt">Loading headlines&hellip;</p>
-  </div>
-
-  <!-- Pagination Controls -->
-<div class="pagination-bar" id="gen-pagination">
-  <button class="btn btn-secondary" id="gen-prev-btn">&larr; Prev</button>
-  <div class="page-numbers" id="gen-page-numbers"></div>
-  <button class="btn btn-secondary" id="gen-next-btn">Next &rarr;</button>
-</div>
-</div>
-
-<!-- ================= SPECIFIC BUSINESS & COMMERCIAL NEWS ================= -->
-<div class="live-card news-card" style="grid-column:1/-1; margin-bottom:1.5rem">
-  <div style="display:flex; justify-content:space-between; align-items:center;">
-    <div>
-      <span class="src-tag" style="color:var(--color-accent-300);">Market Signal &middot; Commercial Space</span>
-      <h3 style="margin:4px 0 0;">Space Economy & Contracts</h3>
+    <!-- ================= 2. COMMERCIAL & BUSINESS ARCHIVE (PLACEHOLDER) ================= -->
+    <div class="live-card news-card" style="grid-column:1/-1; margin-bottom:1.5rem; opacity:0.8;">
+      <span class="src-tag" style="color:var(--color-accent-300);">Archive &middot; Market Signal</span>
+      <h3 style="margin-top:4px;">Commercial Space & Market Reports</h3>
+      <p class="excerpt" style="margin-top:8px;">
+        Commercial archive integration in progress. Direct feed from SpaceNews Commercial will resume here shortly.
+      </p>
+      <div style="padding:18px; border:1px dashed var(--color-divider); border-radius:var(--radius-md); text-align:center; margin-top:12px;">
+        <span class="mono text-muted" style="font-size:12px;">// FEED PAUSED FOR TELEMETRY RE-ROUTING //</span>
+      </div>
     </div>
-    <span class="mono text-muted" id="biz-page-indicator" style="font-size:12px;">Page 1</span>
-  </div>
-
-  <div class="news-grid" id="biz-news-grid">
-    <p class="excerpt">Filtering commercial space & market reports&hellip;</p>
-  </div>
-
-  <!-- Pagination Controls -->
-<div class="pagination-bar" id="biz-pagination">
-  <button class="btn btn-secondary" id="biz-prev-btn" onclick="goToBizPage(currentBizPage - 1)">&larr; Prev</button>
-  <div class="page-numbers" id="biz-page-numbers"></div>
-  <button class="btn btn-secondary" id="biz-next-btn" onclick="goToBizPage(currentBizPage + 1)">Next &rarr;</button>
-</div>
-</div>
 
     <div class="stat-row" id="mc-stats">
       <div class="stat-tile"><div class="num" id="mc-sat-num">&mdash;</div><div class="label">Active satellites tracked in orbit</div><div class="foot" id="mc-sat-foot">CelesTrak catalog</div></div>
