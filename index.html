@@ -551,94 +551,164 @@ details.data-table th:first-child,details.data-table td:first-child{text-align:l
 
 }
 </style>
-
 <style>
   /* ===================================================
-   SLEEK COSMIC PAGINATION BAR
-   =================================================== */
-.pagination-bar {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 8px !important;
-  margin-top: 24px !important;
-  flex-wrap: nowrap !important;
-  width: 100% !important;
-}
-
-.page-numbers {
-  display: inline-flex !important;
-  align-items: center !important;
-  gap: 6px !important;
-}
-
-/* Base button reset & dark terminal style */
-.page-btn {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-width: 34px !important;
-  height: 34px !important;
-  padding: 0 8px !important;
-  font-family: var(--font-mono) !important;
-  font-size: 13px !important;
-  font-weight: 500 !important;
-  color: var(--color-text) !important;
-  background: var(--color-surface) !important;
-  border: 1px solid var(--color-divider) !important;
-  border-radius: var(--radius-md) !important;
-  cursor: pointer !important;
-  transition: all 0.18s ease !important;
-  outline: none !important;
-}
-
-.page-btn:hover:not(:disabled) {
-  border-color: var(--color-accent) !important;
-  color: var(--color-accent-300) !important;
-  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface)) !important;
-}
-
-/* Active page highlight */
-.page-btn.active {
-  background: var(--color-accent) !important;
-  color: #07080d !important;
-  font-weight: 700 !important;
-  border-color: var(--color-accent) !important;
-  box-shadow: 0 0 12px -2px var(--color-accent) !important;
-}
-
-.page-btn:disabled {
-  opacity: 0.3 !important;
-  cursor: not-allowed !important;
-}
-
-/* Prev / Next buttons in pagination bar */
-.pagination-bar .btn {
-  height: 34px !important;
-  padding: 0 14px !important;
-  font-size: 13px !important;
-  border-radius: var(--radius-md) !important;
-  display: inline-flex !important;
-  align-items: center !important;
-}
-
-/* Mobile responsive scaling */
-@media (max-width: 600px) {
+     SLEEK COSMIC PAGINATION BAR
+     =================================================== */
   .pagination-bar {
-    gap: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    margin-top: 24px !important;
+    width: 100% !important;
+    flex-wrap: wrap !important;
   }
+
+  .page-numbers {
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+  }
+
+  /* Base button reset & dark terminal style */
   .page-btn {
-    min-width: 28px !important;
-    height: 28px !important;
-    font-size: 11px !important;
-    padding: 0 4px !important;
-  }
-  .pagination-bar .btn {
-    height: 28px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 34px !important;
+    height: 34px !important;
     padding: 0 8px !important;
-    font-size: 11px !important;
+    font-family: var(--font-mono, monospace) !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    color: var(--color-text, #e3e4eb) !important;
+    background: var(--color-surface, #13151f) !important;
+    border: 1px solid var(--color-divider, #242838) !important;
+    border-radius: var(--radius-md, 6px) !important;
+    cursor: pointer !important;
+    transition: all 0.18s ease !important;
+    outline: none !important;
+    user-select: none !important;
   }
-}
+
+  .page-btn:hover:not(:disabled):not(.active) {
+    border-color: var(--color-accent, #9184d9) !important;
+    color: var(--color-accent-300, #b5abfc) !important;
+    background: color-mix(in srgb, var(--color-accent, #9184d9) 12%, var(--color-surface, #13151f)) !important;
+  }
+
+  /* Active page highlight */
+  .page-btn.active {
+    background: var(--color-accent, #9184d9) !important;
+    color: #07080d !important;
+    font-weight: 700 !important;
+    border-color: var(--color-accent, #9184d9) !important;
+    box-shadow: 0 0 12px -2px var(--color-accent, #9184d9) !important;
+    cursor: default !important;
+  }
+
+  .page-btn:disabled {
+    opacity: 0.3 !important;
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+  }
+
+  /* Ellipsis styling */
+  .page-ellipsis {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 20px !important;
+    height: 34px !important;
+    font-family: var(--font-mono, monospace) !important;
+    font-size: 13px !important;
+    color: var(--color-muted, #75798c) !important;
+    user-select: none !important;
+  }
+
+  /* Prev / Next buttons inside pagination container */
+  .pagination-bar > .page-btn {
+    padding: 0 12px !important;
+    font-weight: 600 !important;
+  }
+
+  /* ===================================================
+     MOBILE RESPONSIVE TWEAKS (PAGINATION + ARTICLE TILES)
+     =================================================== */
+  @media (max-width: 600px) {
+    .pagination-bar {
+      gap: 4px !important;
+      overflow-x: auto !important;
+      padding: 4px 0 !important;
+      -webkit-overflow-scrolling: touch !important;
+    }
+
+    .page-numbers {
+      gap: 4px !important;
+    }
+
+    .page-btn {
+      min-width: 28px !important;
+      height: 28px !important;
+      font-size: 11px !important;
+      padding: 0 5px !important;
+    }
+
+    .page-ellipsis {
+      min-width: 14px !important;
+      height: 28px !important;
+      font-size: 11px !important;
+    }
+
+    .pagination-bar > .page-btn {
+      padding: 0 8px !important;
+      font-size: 11px !important;
+    }
+
+    /* Compact News Tiles on Small Screens (Prevents tall scroll traps) */
+    .news-grid {
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 10px !important;
+    }
+
+    .news-tile {
+      display: grid !important;
+      grid-template-columns: 80px 1fr !important;
+      gap: 12px !important;
+      align-items: center !important;
+      padding: 10px !important;
+    }
+
+    .news-thumb {
+      width: 80px !important;
+      height: 80px !important;
+      margin: 0 !important;
+      border-radius: var(--radius-sm, 4px) !important;
+      overflow: hidden !important;
+    }
+
+    .news-thumb img {
+      width: 100% !important;
+      height: 100% !important;
+      object-fit: cover !important;
+    }
+
+    .news-tile .news-sum {
+      display: none !important; /* Hide long paragraph summary on phones */
+    }
+
+    .news-tile .news-title {
+      font-size: 13px !important;
+      line-height: 1.35 !important;
+      margin-bottom: 4px !important;
+    }
+
+    .news-tile .news-meta {
+      font-size: 11px !important;
+    }
+  }
 </style>
 </head>
 <body>
