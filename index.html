@@ -125,7 +125,7 @@ section{padding:34px 28px;border-bottom:1px solid var(--color-divider)}
 .stat-tile .foot{margin-top:7px;font-family:var(--font-mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--color-neutral-600)}
 
 /* live cards */
-.live-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:18px}
+.live-grid{display:grid; grid-template-columns:repeat(3,1fr);gap:16px;margin-top:18px}
 .live-card{display:flex;flex-direction:column;padding:16px;border-radius:var(--radius-md);background:var(--color-surface);box-shadow:var(--shadow-sm)}
 .src-tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--font-mono);font-size:10px;letter-spacing:.08em;
   text-transform:uppercase;color:var(--color-accent)}
@@ -302,7 +302,9 @@ details.data-table th:first-child,details.data-table td:first-child{text-align:l
 .rail-toggle.active .x{display:block}
 
 /* chart grid */
-.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.chart-grid{display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;}
 .chart-card{padding:20px;border-radius:var(--radius-lg);background:var(--color-surface);box-shadow:var(--shadow-sm);display:flex;flex-direction:column}
 .chart-card-head{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:8px 14px}
 .chart-card-head h3{font-size:16px;margin:0;text-wrap:balance}
@@ -551,165 +553,213 @@ details.data-table th:first-child,details.data-table td:first-child{text-align:l
 
 }
 </style>
+
 <style>
   /* ===================================================
-     SLEEK COSMIC PAGINATION BAR
-     =================================================== */
+   SLEEK COSMIC PAGINATION BAR
+   =================================================== */
+.pagination-bar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin-top: 24px !important;
+  flex-wrap: nowrap !important;
+  width: 100% !important;
+}
+
+.page-numbers {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+/* Base button reset & dark terminal style */
+.page-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 34px !important;
+  height: 34px !important;
+  padding: 0 8px !important;
+  font-family: var(--font-mono) !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--color-text) !important;
+  background: var(--color-surface) !important;
+  border: 1px solid var(--color-divider) !important;
+  border-radius: var(--radius-md) !important;
+  cursor: pointer !important;
+  transition: all 0.18s ease !important;
+  outline: none !important;
+}
+
+.page-btn:hover:not(:disabled) {
+  border-color: var(--color-accent) !important;
+  color: var(--color-accent-300) !important;
+  background: color-mix(in srgb, var(--color-accent) 12%, var(--color-surface)) !important;
+}
+
+/* Active page highlight */
+.page-btn.active {
+  background: var(--color-accent) !important;
+  color: #07080d !important;
+  font-weight: 700 !important;
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 12px -2px var(--color-accent) !important;
+}
+
+.page-btn:disabled {
+  opacity: 0.3 !important;
+  cursor: not-allowed !important;
+}
+
+/* Prev / Next buttons in pagination bar */
+.pagination-bar .btn {
+  height: 34px !important;
+  padding: 0 14px !important;
+  font-size: 13px !important;
+  border-radius: var(--radius-md) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+/* Mobile responsive scaling */
+@media (max-width: 600px) {
   .pagination-bar {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 8px !important;
-    margin-top: 24px !important;
-    width: 100% !important;
-    flex-wrap: wrap !important;
+    gap: 4px !important;
   }
-
-  .page-numbers {
-    display: inline-flex !important;
-    align-items: center !important;
-    gap: 6px !important;
-  }
-
-  /* Base button reset & dark terminal style */
   .page-btn {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-width: 34px !important;
-    height: 34px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+    font-size: 11px !important;
+    padding: 0 4px !important;
+  }
+  .pagination-bar .btn {
+    height: 28px !important;
     padding: 0 8px !important;
-    font-family: var(--font-mono, monospace) !important;
-    font-size: 13px !important;
-    font-weight: 500 !important;
-    color: var(--color-text, #e3e4eb) !important;
-    background: var(--color-surface, #13151f) !important;
-    border: 1px solid var(--color-divider, #242838) !important;
-    border-radius: var(--radius-md, 6px) !important;
-    cursor: pointer !important;
-    transition: all 0.18s ease !important;
-    outline: none !important;
-    user-select: none !important;
+    font-size: 11px !important;
   }
-
-  .page-btn:hover:not(:disabled):not(.active) {
-    border-color: var(--color-accent, #9184d9) !important;
-    color: var(--color-accent-300, #b5abfc) !important;
-    background: color-mix(in srgb, var(--color-accent, #9184d9) 12%, var(--color-surface, #13151f)) !important;
-  }
-
-  /* Active page highlight */
-  .page-btn.active {
-    background: var(--color-accent, #9184d9) !important;
-    color: #07080d !important;
-    font-weight: 700 !important;
-    border-color: var(--color-accent, #9184d9) !important;
-    box-shadow: 0 0 12px -2px var(--color-accent, #9184d9) !important;
-    cursor: default !important;
-  }
-
-  .page-btn:disabled {
-    opacity: 0.3 !important;
-    cursor: not-allowed !important;
-    pointer-events: none !important;
-  }
-
-  /* Ellipsis styling */
-  .page-ellipsis {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    min-width: 20px !important;
-    height: 34px !important;
-    font-family: var(--font-mono, monospace) !important;
-    font-size: 13px !important;
-    color: var(--color-muted, #75798c) !important;
-    user-select: none !important;
-  }
-
-  /* Prev / Next buttons inside pagination container */
-  .pagination-bar > .page-btn {
-    padding: 0 12px !important;
-    font-weight: 600 !important;
-  }
-
-  /* ===================================================
-     MOBILE RESPONSIVE TWEAKS (PAGINATION + ARTICLE TILES)
-     =================================================== */
-  @media (max-width: 600px) {
-    .pagination-bar {
-      gap: 4px !important;
-      overflow-x: auto !important;
-      padding: 4px 0 !important;
-      -webkit-overflow-scrolling: touch !important;
-    }
-
-    .page-numbers {
-      gap: 4px !important;
-    }
-
-    .page-btn {
-      min-width: 28px !important;
-      height: 28px !important;
-      font-size: 11px !important;
-      padding: 0 5px !important;
-    }
-
-    .page-ellipsis {
-      min-width: 14px !important;
-      height: 28px !important;
-      font-size: 11px !important;
-    }
-
-    .pagination-bar > .page-btn {
-      padding: 0 8px !important;
-      font-size: 11px !important;
-    }
-
-    /* Compact News Tiles on Small Screens (Prevents tall scroll traps) */
-    .news-grid {
-      display: flex !important;
-      flex-direction: column !important;
-      gap: 10px !important;
-    }
-
-    .news-tile {
-      display: grid !important;
-      grid-template-columns: 80px 1fr !important;
-      gap: 12px !important;
-      align-items: center !important;
-      padding: 10px !important;
-    }
-
-    .news-thumb {
-      width: 80px !important;
-      height: 80px !important;
-      margin: 0 !important;
-      border-radius: var(--radius-sm, 4px) !important;
-      overflow: hidden !important;
-    }
-
-    .news-thumb img {
-      width: 100% !important;
-      height: 100% !important;
-      object-fit: cover !important;
-    }
-
-    .news-tile .news-sum {
-      display: none !important; /* Hide long paragraph summary on phones */
-    }
-
-    .news-tile .news-title {
-      font-size: 13px !important;
-      line-height: 1.35 !important;
-      margin-bottom: 4px !important;
-    }
-
-    .news-tile .news-meta {
-      font-size: 11px !important;
-    }
-  }
+}
 </style>
+
+<style>
+  /* Container Spacing */
+.cta-container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+/* Main Card Wrapper */
+.final-cta-card {
+  background: var(--color-surface, #121316);
+  border: 1px solid var(--color-divider, #22262e);
+  border-radius: var(--radius-lg, 16px);
+  padding: 3.5rem 3rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2.5rem;
+  box-shadow: var(--shadow-md, 0 10px 30px rgba(0, 0, 0, 0.2));
+}
+
+/* Content Header */
+.cta-content {
+  max-width: 600px;
+}
+
+.cta-content .eyebrow {
+  display: inline-block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-accent, #3b82f6);
+  margin-bottom: 0.75rem;
+}
+
+.cta-content h2 {
+  font-size: clamp(2rem, 3.5vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-heading, #ffffff);
+  margin: 0 0 1rem 0;
+}
+
+.cta-content p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-neutral-400, #94a3b8);
+  margin: 0;
+}
+
+/* Form Stack: Header -> Box -> Button */
+.signup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* Generous space between the box and the button */
+  width: 100%;
+  max-width: 480px; /* Makes the input box wider and prominent */
+}
+
+.signup-form .input-wrapper {
+  width: 100%;
+}
+
+.signup-form .input {
+  width: 100%;
+  height: 52px; /* Taller, comfortable touch target */
+  padding: 0 1.25rem;
+  background: var(--color-bg-deep, #090a0c);
+  border: 1px solid var(--color-divider, #22262e);
+  border-radius: var(--radius-md, 8px);
+  color: var(--color-text, #f8fafc);
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.signup-form .input:focus {
+  border-color: var(--color-accent, #3b82f6);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+/* Action Button */
+.signup-form .btn {
+  width: 100%;
+  height: 52px; /* Matches input box height for clean visual balance */
+  padding: 0 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  border-radius: var(--radius-md, 8px);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.signup-form .btn-icon {
+  transition: transform 0.2s ease;
+}
+
+.signup-form .btn:hover .btn-icon {
+  transform: translateX(3px);
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+  .final-cta-card {
+    padding: 2.5rem 1.5rem;
+    gap: 2rem;
+  }
+}
+</style>
+
+
 </head>
 <body>
 <script>
@@ -758,39 +808,49 @@ details.data-table th:first-child,details.data-table td:first-child{text-align:l
 <main class="content">
 
   <section id="live">
-<!-- ================= 1. GLOBAL SPACE NEWS (LIVE + WORKING 10-PAGE PAGINATION) ================= -->
-    <div class="live-card news-card" style="grid-column:1/-1; margin-bottom:1.5rem">
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <span class="src-tag">Live Feed &middot; Spaceflight News</span>
-          <h3 style="margin:4px 0 0;">Headlines this week</h3>
-        </div>
-        <span class="mono text-muted" id="gen-page-indicator" style="font-size:12px;">Page 1 of 10</span>
-      </div>
-
-      <div class="news-grid" id="mc-news-grid">
-        <p class="excerpt">Loading headlines&hellip;</p>
-      </div>
-
-      <!-- Pagination Bar: NO inline onclick handlers to prevent conflicts -->
-      <div class="pagination-bar" id="gen-pagination">
-        <button class="page-btn" id="gen-prev-btn" type="button">&larr; Prev</button>
-        <div class="page-numbers" id="gen-page-numbers"></div>
-        <button class="page-btn" id="gen-next-btn" type="button">Next &rarr;</button>
-      </div>
+<!-- ================= ALL NEWS (PAGE 1 TO N) ================= -->
+<div class="live-card news-card" style="grid-column:1/-1; margin-bottom:1.5rem">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <span class="src-tag">Global Feed &middot; Live Headlines</span>
+      <h3 style="margin:4px 0 0;">General Space News</h3>
     </div>
+    <span class="mono text-muted" id="general-page-indicator" style="font-size:12px;">Page 1</span>
+  </div>
 
-    <!-- ================= 2. COMMERCIAL & BUSINESS ARCHIVE (PLACEHOLDER) ================= -->
-    <div class="live-card news-card" style="grid-column:1/-1; margin-bottom:1.5rem; opacity:0.8;">
-      <span class="src-tag" style="color:var(--color-accent-300);">Archive &middot; Market Signal</span>
-      <h3 style="margin-top:4px;">Commercial Space & Market Reports</h3>
-      <p class="excerpt" style="margin-top:8px;">
-        Commercial archive integration in progress. Direct feed from SpaceNews Commercial will resume here shortly.
-      </p>
-      <div style="padding:18px; border:1px dashed var(--color-divider); border-radius:var(--radius-md); text-align:center; margin-top:12px;">
-        <span class="mono text-muted" style="font-size:12px;">// FEED PAUSED FOR TELEMETRY RE-ROUTING //</span>
-      </div>
+  <div class="news-grid" id="mc-news-grid">
+    <p class="excerpt">Loading headlines&hellip;</p>
+  </div>
+
+  <!-- Pagination Controls -->
+<div class="pagination-bar" id="gen-pagination">
+  <button class="btn btn-secondary" id="gen-prev-btn">&larr; Prev</button>
+  <div class="page-numbers" id="gen-page-numbers"></div>
+  <button class="btn btn-secondary" id="gen-next-btn">Next &rarr;</button>
+</div>
+</div>
+
+<!-- ================= SPECIFIC BUSINESS & COMMERCIAL NEWS ================= -->
+<div class="live-card news-card" style="grid-column:1/-1; margin-bottom:1.5rem">
+  <div style="display:flex; justify-content:space-between; align-items:center;">
+    <div>
+      <span class="src-tag" style="color:var(--color-accent-300);">Market Signal &middot; Commercial Space</span>
+      <h3 style="margin:4px 0 0;">Space Economy & Contracts</h3>
     </div>
+    <span class="mono text-muted" id="biz-page-indicator" style="font-size:12px;">Page 1</span>
+  </div>
+
+  <div class="news-grid" id="biz-news-grid">
+    <p class="excerpt">Filtering commercial space & market reports&hellip;</p>
+  </div>
+
+  <!-- Pagination Controls -->
+<div class="pagination-bar" id="biz-pagination">
+  <button class="btn btn-secondary" id="biz-prev-btn" onclick="goToBizPage(currentBizPage - 1)">&larr; Prev</button>
+  <div class="page-numbers" id="biz-page-numbers"></div>
+  <button class="btn btn-secondary" id="biz-next-btn" onclick="goToBizPage(currentBizPage + 1)">Next &rarr;</button>
+</div>
+</div>
 
     <div class="stat-row" id="mc-stats">
       <div class="stat-tile"><div class="num" id="mc-sat-num">&mdash;</div><div class="label">Active satellites tracked in orbit</div><div class="foot" id="mc-sat-foot">CelesTrak catalog</div></div>
@@ -1020,36 +1080,29 @@ details.data-table th:first-child,details.data-table td:first-child{text-align:l
       </div>
     </div>
   </section>
-
-  <section id="about">
-    <div class="section-head">
-      <span class="eyebrow">From the archive</span>
-      <h2>A sample dispatch, decoded</h2>
-    </div>
-    <div class="dispatch-card">
-      <div class="dispatch-bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp;&nbsp;sample issue &mdash; for illustration only</div>
-      <div class="dispatch-body">
-        <div class="line-head">MISSION LOG &mdash; ISSUE 034</div><br>
-        <span class="arrow">&rsaquo;</span> Reusable upper-stage test lands its first catch-and-relaunch. Translation: fewer parts get thrown away per flight.<br><br>
-        <span class="arrow">&rsaquo;</span> In-orbit servicing startups lead this quarter's funding round, signalling investors care more about maintenance than launches.<br><br>
-        <span class="arrow">&rsaquo;</span> A new smallsat constellation begins deployment, aiming to cut rural broadband latency in half.<br><br>
-        <span class="bear-take">Cosmic Bear's take:</span> satellites are quietly becoming less disposable. That's the story worth watching this year.
-      </div>
-    </div>
-  </section>
-
-  <section>
-    <div class="final-cta">
+<!-- FINAL CTA / SUBSCRIPTION SECTION -->
+<section class="cta-container">
+  <div class="final-cta-card">
+    <div class="cta-content">
       <span class="eyebrow">Ready for launch</span>
-      <h2>Don't miss the launch window</h2>
-      <p>One dispatch a week, straight from orbit. Free to join, easy to leave.</p>
-      <form class="signup" id="signupFooter">
-        <label for="email2" style="position:absolute;left:-9999px">Email address</label>
-        <input class="input" id="email2" type="email" placeholder="you@example.com" required autocomplete="email">
-        <button class="btn btn-primary" type="submit">Subscribe for free</button>
-      </form>
+      <h2>Secure your frequency</h2>
+      <p>One curated technical briefing delivered straight from orbit every week. Zero noise, zero fluff, easy to unsubscribe.</p>
     </div>
-  </section>
+    
+    <form class="signup-form" id="signupFooter">
+      <label for="email2" class="sr-only">Email address</label>
+      
+      <div class="input-wrapper">
+        <input class="input" id="email2" type="email" placeholder="name@domain.com" required autocomplete="email">
+      </div>
+      
+      <button class="btn btn-primary" type="submit">
+        <span>Initialize Feed</span>
+        <svg class="btn-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </button>
+    </form>
+  </div>
+</section>
 
   <footer style="padding:34px 28px">
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:36px">
@@ -1114,6 +1167,7 @@ details.data-table th:first-child,details.data-table td:first-child{text-align:l
 
 <script src="/main.js" defer></script>
 <script src="api/lmg.js" defer></script>
+
 
 </body>
 </html>
