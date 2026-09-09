@@ -9,6 +9,18 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet">
+
+
+<!-- MailerLite Universal -->
+<script>
+    (function(w,d,e,u,f,l,n){w[f]=w[f]||function(){(w[f].q=w[f].q||[])
+    .push(arguments);},l=d.createElement(e),l.async=1,l.src=u,
+    n=d.getElementsByTagName(e)[0],n.parentNode.insertBefore(l,n);})
+    (window,document,'script','https://assets.mailerlite.com/js/universal.js','ml');
+    ml('account', '2611024');
+</script>
+<!-- End MailerLite Universal -->
+
 <style>
 :root {
   /* Pitch-black space canvas with deep graphite cards */
@@ -758,8 +770,43 @@ details.data-table th:first-child,details.data-table td:first-child{text-align:l
   }
 }
 </style>
+<style>
+  .final-cta-card .big-btn-wrapper {
+    width: 100%;
+    max-width: 480px;
+  }
 
+  .final-cta-card .big-btn {
+    width: 100%;
+    height: 64px;
+    padding: 0 2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    border-radius: var(--radius-md, 8px);
+    font-weight: 600;
+    font-size: 1.125rem;
+    background-color: var(--color-accent);
+    color: #ffffff;
+    text-decoration: none;
+    border: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
 
+  .final-cta-card .big-btn:hover {
+    opacity: 0.9;
+  }
+
+  .final-cta-card .big-btn .btn-icon {
+    transition: transform 0.2s ease;
+  }
+
+  .final-cta-card .big-btn:hover .btn-icon {
+    transform: translateX(4px);
+  }
+</style>
 </head>
 <body>
 <script>
@@ -791,11 +838,12 @@ details.data-table th:first-child,details.data-table td:first-child{text-align:l
   <div class="hero-inner">
     <span class="tag tag-outline" style="align-self:flex-start">Transmission incoming &middot; weekly</span>
     <h1>Meet Cosmic Bear,<br>your newsroom <em>in orbit</em></h1>
-    <form class="signup" id="signupHero">
-      <label for="email" style="position:absolute;left:-9999px">Email address</label>
-      <input class="input" id="email" type="email" placeholder="you@example.com" required autocomplete="email">
-      <button class="btn btn-primary" type="submit">Join the crew</button>
-    </form>
+    <div class="big-btn-wrapper">
+      <a href="#mlb2-45737977" class="big-btn" onclick="document.getElementById('mlb2-45737977').scrollIntoView({ behavior: 'smooth' }); return false;">
+        <span>Subscribe now</span>
+        <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </a>
+    </div>
   </div>
 </header>
 
@@ -1977,7 +2025,6 @@ One curated technical briefing delivered straight from orbit every week. Zero no
             fetch("https://assets.mailerlite.com/jsonp/2611024/forms/198130807106176865/takel")
         </script>
 </section>
-
 
   <footer style="padding:34px 28px">
     <div style="display:flex;flex-wrap:wrap;justify-content:space-between;gap:36px">
